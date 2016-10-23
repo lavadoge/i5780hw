@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+body {
+	overflow: hidden
+}
+
+</style>
+</head>
+
+<body> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+<script>
+
+var renderer, scene, camera;
+var controls, cube,train;
+var angle = 0;  // initialization IMPORTANT!
+
+init();
+animate();
+
+function init () {
+	
+	renderer = new THREE.WebGLRenderer();
+	document.body.appendChild (renderer.domElement);
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	renderer.setSize (width, height);
+	
+	renderer.setClearColor (0x888888);
+	
+	scene = new THREE.Scene();
+	var grid = new THREE.GridHelper(15,1, 0xaaaa00, 0x333333);
+	scene.add (grid);
+	var axes = new THREE.AxisHelper (5);
+	scene.add (axes);
+	
+	camera = new THREE.PerspectiveCamera (35, width/height, 1, 100);
+	camera.position.y = 16;
+	camera.position.z = 40;
+	camera.lookAt (new THREE.Vector3(0,0,0));
+	
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+	
+	window.addEventListener('resize', onWindowResize, false);
+	///////////////////////////////////////////////////////////////
+	var cubeGeometry = new THREE.BoxGeometry (4,1,7);
+	var cubeMaterial = new THREE.MeshNormalMaterial();
+	cube = new THREE.Mesh (cubeGeometry, cubeMaterial);
+	cube.position.y=0.5;
+  var geometry = new THREE.CylinderGeometry(1, 1, 3, 32 );
+var material = new THREE.MeshNormalMaterial(  );
+var cylinder = new THREE.Mesh( geometry, material );
+cylinder.position.y=1.5;
+cylinder.position.z=-2.5;
+ 	train = new THREE.Object3D();
+	train.add(cube);
+  train.add(cylinder);
+	scene.add(train);
+		
+}
+
+function onWindowResize() {
+  
+	var width = window.innerWidth;
+  var height = window.innerHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+	
+}
+
+function animate() {
+	
+	angle -= 0.01;
+	train.position.set (12*Math.cos(angle), 0, 12*Math.sin(angle));
+	train.rotation.y = -angle;
+	controls.update();
+	requestAnimationFrame(animate);
+	render();
+	
+}
+
+function render() {
+	
+	renderer.render(scene, camera);
+	
+}
+
+
+</script>
+</body>
+
+</html>
