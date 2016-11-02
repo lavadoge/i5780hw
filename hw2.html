@@ -101,17 +101,17 @@ var material = new THREE.MeshBasicMaterial();
   var ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 50), new THREE.MeshBasicMaterial({
     color: 0xff0000
   }));
-  var wall = new THREE.Mesh(new THREE.PlaneGeometry(50, 500), new THREE.MeshBasicMaterial({
-    color: 0xff0000
-  }));
-  var wall2 = new THREE.Mesh(new THREE.PlaneGeometry(50, 500), new THREE.MeshBasicMaterial({
-    color: 0xff0000
-  }));
-  scene.add(wall);
-  scene.add(wall2);
+//  var wall = new THREE.Mesh(new THREE.PlaneGeometry(50, 500), new THREE.MeshBasicMaterial({
+ //   color: 0xff0000
+ // }));
+ // var wall2 = new THREE.Mesh(new THREE.PlaneGeometry(50, 500), new THREE.MeshBasicMaterial({
+ //////   color: 0xff0000
+ // }));
+ // scene.add(wall);
+ // scene.add(wall2);
   scene.add(ground);
-  wall.position.x = -25;
-  wall2.position.x = 525;
+  //wall.position.x = -25;
+  //wall2.position.x = 525;
   ground.position.y = -25;
   ground.position.x = 250;  // this is WRong!!!
 
@@ -144,15 +144,15 @@ if (pos.y <= ballR) {    // if contact, add contact force
     if (keyboard.down ('right')) {
     if(vel.x<0){vel.x=0}
     else
-		vel.x=50; 
+		vel.x=30; 
   }
   if (keyboard.down ('left')) {
 		if(vel.x>0){vel.x=0}
     else
-		vel.x=-50;  
+		vel.x=-30;  
   }
   if (keyboard.down ('up')) {
-		vel.y=50; 
+		vel.y=80; 
   }
 	} 
     
