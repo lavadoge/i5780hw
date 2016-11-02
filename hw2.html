@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+#info {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: #ffff00
+}
+
+body {
+  overflow: hidden;
+ // background-image: url("http://wallpaper.zone/img/22536.jpg");
+// background-repeat: repeat-x;
+}
+</style>
+</head>
+
+<body> 
+<div id="info">hw2
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
+<script type="text/javascript">
+document.oncontextmenu=function(){return false;}
+</script>
+<script >
+var camera, scene, renderer;
+var satellite, angle = 0;
+var mousePoint;
+var mouse = new THREE.Vector2();
+//var stats;
+var pos, vel, force;
+var clock = new THREE.Clock();
+var ball;
+var count;
+var keyboard = new KeyboardState();
+
+var ballR = 3;
+init();
+animate();
+
+function init() {
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+
+  pos = new THREE.Vector3(25, 40, 0);
+  vel = new THREE.Vector3(0, 0, 0);
+  //force = new THREE.Vector3(0, -90, 0);
+
+
+  /*
+    // STATS
+  	stats = new Stats();
+  	stats.domElement.style.position = 'absolute';
+  	stats.domElement.style.top = '0px';
+  	stats.domElement.style.zIndex = 100;
+  	document.body.appendChild( stats.domElement );	
+  */
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x888888);
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  camera = new THREE.OrthographicCamera(-50, 50, 80, -20, -10, 100);
+  camera.position.z = 10;
+  scene.add(camera);
+var material = new THREE.MeshBasicMaterial();
+  material.map =  THREE.ImageUtils.loadTexture('background.jpg');
+
+	for (var i = 0; i < 5; i++){
+	//var background = new THREE.Mesh (new THREE.PlaneGeometry (100,100), new THREE.MeshBasicMaterial({color:0xffffff*Math.random()}));
+  var background = new THREE.Mesh (new THREE.PlaneGeometry (100,100),material );
+  background.position.y = 30;
+  background.position.x = i*100+50;
+  scene.add (background);
+  }
+  
+  // what's in the scene? [depth]
+  // bordere (blue lines) [0]
+  // satellite (white circle) [1]
+  // mousePoint (red circle) [2]
+  // background (dark yellow quad) [3]
+  //
+  // all on XY plane: rely on polygonOffset to sort things out
+  // line object remains at frontmost
+
+  ////////////////////////////////////////////////////////////////////////////////////////////
+  ball = new THREE.Mesh(new THREE.CircleGeometry(ballR, 20), new THREE.MeshBasicMaterial({
+    color: 0x12ff23
+  }));
+  scene.add(ball);
+  ball.position.y = 30;
+
+  var ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 50), new THREE.MeshBasicMaterial({
+    color: 0xff0000
+  }));
+  var wall = new THREE.Mesh(new THREE.PlaneGeometry(50, 500), new THREE.MeshBasicMaterial({
+    color: 0xff0000
+  }));
+  var wall2 = new THREE.Mesh(new THREE.PlaneGeometry(50, 500), new THREE.MeshBasicMaterial({
+    color: 0xff0000
+  }));
+  scene.add(wall);
+  scene.add(wall2);
+  scene.add(ground);
+  wall.position.x = -25;
+  wall2.position.x = 525;
+  ground.position.y = -25;
+  ground.position.x = 250;  // this is WRong!!!
+
+  window.addEventListener('resize', onWindowResize, false);
+ // window.addEventListener('mousedown', onDocumentMouseDown, false);
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+
+
+function animate() {
+  var dt = clock.getDelta();
+
+	keyboard.update();
+    camera.position.x = pos.x; 
+    
+   // console.log (camera.position.x);
+   // if (pos.y <= ballR) {
+    //pos.y = 0;
+    if (pos.x <= ballR||pos.x>=500-ballR) {    // if contact, add contact force
+    if(vel.x<0){vel.x=0}
+    if(vel.x>0){vel.x=0}
+	} 
+if (pos.y <= ballR) {    // if contact, add contact force
+    if (keyboard.down ('right')) {
+    if(vel.x<0){vel.x=0}
+    else
+		vel.x=50; 
+  }
+  if (keyboard.down ('left')) {
+		if(vel.x>0){vel.x=0}
+    else
+		vel.x=-50;  
+  }
+  if (keyboard.down ('up')) {
+		vel.y=50; 
+  }
+	} 
+    
+    
+  // force: add gravity first
+  force = new THREE.Vector3(0, -90, 0);
+	if (pos.y <= ballR) {    // if contact, add contact force
+    force.add(new THREE.Vector3(0, 90, 0));
+	}  
+  
+  // then do Euler's
+  vel.add(force.clone().multiplyScalar(dt));
+  pos.add(vel.clone().multiplyScalar(dt));
+  ball.position.copy(pos);
+
+
+  // collision
+  // if (x-p).n < 0 then hit
+  /*
+  if (pos.clone().sub(planeP).dot(planeN) < 0) {
+  	pos.y = 30;
+    vel.set (0,0,0);
+    }
+    */
+  // bounce back
+  if (pos.y <= ballR) {
+    //pos.y = 0;
+    vel.y *= -.3;
+   // vel.x *= .8;
+  }
+  
+  requestAnimationFrame(animate);
+  render();
+}
+
+function render() {
+  renderer.render(scene, camera);
+}
+
+window.focus();
+</script>
+
+
+
+var renderer, scene, camera;
+var controls, cube,train;
+var angle = 0;  // initialization IMPORTANT!
+
+init();
+animate();
+
+function init () {
+	
+	renderer = new THREE.WebGLRenderer();
+	document.body.appendChild (renderer.domElement);
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	renderer.setSize (width, height);
+	
+	renderer.setClearColor (0x888888);
+	
+	scene = new THREE.Scene();
+	var grid = new THREE.GridHelper(15,1, 0xaaaa00, 0x333333);
+	scene.add (grid);
+	var axes = new THREE.AxisHelper (5);
+	scene.add (axes);
+	
+	camera = new THREE.PerspectiveCamera (35, width/height, 1, 100);
+	camera.position.y = 16;
+	camera.position.z = 40;
+	camera.lookAt (new THREE.Vector3(0,0,0));
+	
+	controls = new THREE.OrbitControls(camera, renderer.domElement);
+	
+	window.addEventListener('resize', onWindowResize, false);
+	///////////////////////////////////////////////////////////////
+	var cubeGeometry = new THREE.BoxGeometry (4,1,7);
+	var cubeMaterial = new THREE.MeshNormalMaterial();
+	cube = new THREE.Mesh (cubeGeometry, cubeMaterial);
+	cube.position.y=0.5;
+  var geometry = new THREE.CylinderGeometry(1, 1, 3, 32 );
+var material = new THREE.MeshNormalMaterial(  );
+var cylinder = new THREE.Mesh( geometry, material );
+cylinder.position.y=1.5;
+cylinder.position.z=-2.5;
+ 	train = new THREE.Object3D();
+	train.add(cube);
+  train.add(cylinder);
+	scene.add(train);
+		
+}
+
+function onWindowResize() {
+  
+	var width = window.innerWidth;
+  var height = window.innerHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+	
+}
+
+function animate() {
+	
+	angle -= 0.01;
+	train.position.set (12*Math.cos(angle), 0, 12*Math.sin(angle));
+	train.rotation.y = -angle;
+	controls.update();
+	requestAnimationFrame(animate);
+	render();
+	
+}
+
+function render() {
+	
+	renderer.render(scene, camera);
+	
+}
+
+
+</script>
+</body>
+
+</html>
