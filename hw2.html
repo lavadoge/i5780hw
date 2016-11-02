@@ -74,11 +74,11 @@ function init() {
 var material = new THREE.MeshBasicMaterial();
   material.map =  THREE.ImageUtils.loadTexture('background.jpg');
 
-	for (var i = 0; i < 5; i++){
+	for (var i = 0; i < 6; i++){
 	//var background = new THREE.Mesh (new THREE.PlaneGeometry (100,100), new THREE.MeshBasicMaterial({color:0xffffff*Math.random()}));
   var background = new THREE.Mesh (new THREE.PlaneGeometry (100,100),material );
   background.position.y = 30;
-  background.position.x = i*100+50;
+  background.position.x = i*100;
   scene.add (background);
   }
   
@@ -99,7 +99,7 @@ var material = new THREE.MeshBasicMaterial();
   ball.position.y = 30;
 
   var ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 50), new THREE.MeshBasicMaterial({
-    color: 0xff0000
+    color: 0x00cc00
   }));
 //  var wall = new THREE.Mesh(new THREE.PlaneGeometry(50, 500), new THREE.MeshBasicMaterial({
  //   color: 0xff0000
