@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<style>
+	body {
+	  background-color: #fff;
+	  color: #111;
+	  margin: 0px;
+	  overflow: hidden;
+	  font-family: Monospace;
+	  font-size: 20px;
+	}
+	
+	#info {
+	  position: absolute;
+	  top: 0px;
+	  width: 100%;
+	  padding: 5px;
+	  text-align: center;
+	  color: #ffff00
+	}
+	
+	a {
+	  color: #00ffff
+	}
+	
+	strong {
+	  color: red
+	}
+	
+	#container {
+	  z-index: 0;
+	  left: 0px;
+	  top: 0px;
+	  overflow: hidden;
+	  position: absolute;
+	  width: 100%;
+	  height: 100%;
+	}
+#gui {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    //height: 350px;
+}
+
+</style>
+</head>
+
+<body> 
+<div id="info">
+  Keyframe Setter
+  <br>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
+<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5.1/dat.gui.min.js"></script>
+<audio id="soundtrack" autoplay loop style="display:none">
+<source src="Boom_Chuk2_130.mp3" type='audio/mp3'>
+</audio>
+<script>
+var scene, renderer, camera;
+var controls;
+
+var torso;
+var lowerArmL, upperArmL;
+var lowerArmR, upperArmR;
+var head;
+
+var clock = new THREE.Clock();
+
+var gcontrols;
+var turn=true;
+var dt = 0;
+var lr=0;
+var keys = [
+[0, [-.2, 0, 0, -1.6, 0,0.2, 0, 0, -1.6,]],  // standby
+[0.2, [-.2, 0, 0, -1.6, 0,0.2, 0, 0, -1.6]],  // standby
+[0.3, [-1.2, -0.5, 0.08, -1.7, 0,1.2, 0.5, 0, -1.6]], // start
+[0.5, [-1.2, -0.5, 0.08, -1.7, 0,1.2, 0.5, 0, -1.6]], // start
+[0.55, [-2.3, -1.6, -0.2, -.91, 0,2.3, -1.6, -.5, -0.91]], // halfswing
+[0.6, [-2.9, -1.3, -.3, -.11, 0,2.9, -1.3, .5, -.11]], // swing
+[0.85, [-2.9, -1.3, -.3, -.11, 0,2.9, -1.3, .5, -.11]], // swing
+[1, [-.15, 0, -.5, -1.6, 0,0.15, 0, .5, -1.6]],
+];
+var T = 0.5
+var clock = new THREE.Clock();
+var ts = clock.getElapsedTime();
+var intKey=[];
+
+var collisionSound, soundTrack;
+var isPaused = false, soundVal = 0.5, sign = 1.0;
+
+/////////////////////////////////////////////////////
+
+init();
+animate();
+
+
+function init() {
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+soundTrack = document.getElementById ('soundtrack');
+  renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  renderer.setSize(width, height);
+  renderer.setClearColor(0x888888);
+
+  document.body.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 10000);
+  camera.position.y = 160;
+  camera.position.z = 400;
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+  scene.add(camera);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  var boxGeometry = new THREE.BoxGeometry(50, 90, 30);
+  torso = new THREE.Object3D();
+  
+  var bodyMesh = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  bodyMesh.position.set(0, 60, 0);
+  torso.add(bodyMesh);
+  scene.add(torso);
+  
+  
+  var head = new THREE.Mesh (new THREE.CylinderGeometry(12,10,20,32), new THREE.MeshNormalMaterial());
+  torso.add(head);
+  head.position.set (0,110,0);
+  
+ var stick = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 40)  , new THREE.MeshNormalMaterial());
+ var stick2 = new THREE.Mesh(new THREE.BoxGeometry(5, 5, 40)  , new THREE.MeshNormalMaterial());
+  var boxGeometry = new THREE.BoxGeometry(10, 40, 10);  
+  var armL = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  upperArmL = new THREE.Object3D();
+  upperArmL.add(armL);
+  armL.position.set(-5, -20, 0);
+  torso.add(upperArmL);
+  upperArmL.position.set(-25, 100, 0);
+  arm2L = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  lowerArmL = new THREE.Object3D();
+  lowerArmL.position.set(0, -40, 0);
+  upperArmL.add(lowerArmL);
+  lowerArmL.add(arm2L);
+  lowerArmL.add(stick);
+  stick.position.y=-40;
+  stick.position.x=-5;
+  stick.position.z=5;
+  arm2L.position.set(-5, -20, 0);
+
+var armR = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  upperArmR = new THREE.Object3D();
+  upperArmR.add(armR);
+  armR.position.set(5, -20, 0);
+  torso.add(upperArmR);
+  upperArmR.position.set(25, 100, 0);
+  arm2R = new THREE.Mesh(boxGeometry, new THREE.MeshNormalMaterial());
+  lowerArmR = new THREE.Object3D();
+  lowerArmR.position.set(0, -40, 0);
+  upperArmR.add(lowerArmR);
+  lowerArmR.add(arm2R);
+  lowerArmR.add(stick2);
+  stick2.position.y=-40;
+  stick2.position.x=5;
+  stick2.position.z=5;
+  arm2R.position.set(5, -20, 0);
+
+
+var drum = new THREE.Mesh (new THREE.CylinderGeometry(30,30,60,32), new THREE.MeshNormalMaterial());
+torso.add(drum);
+drum.rotation.z=1.52;
+drum.position.y=70
+drum.position.z=50;
+var feet1 = new THREE.Mesh (new THREE.CylinderGeometry(10,10,20,32), new THREE.MeshNormalMaterial());
+torso.add(feet1);
+feet1.position.x=15;
+feet1.position.y=10;
+var feet2 = new THREE.Mesh (new THREE.CylinderGeometry(10,10,20,32), new THREE.MeshNormalMaterial());
+torso.add(feet2);
+feet2.position.x=-15;
+feet2.position.y=10;
+  var gridXZ = new THREE.GridHelper(100, 10);
+  gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
+  scene.add(gridXZ);
+
+	window.addEventListener('resize', onWindowResize, false);
+  ///////////////////////////////////////////////////
+  /*gcontrols = {
+  	shoulderLZ: 0.01,
+    shoulderLY: 0.1,
+    shoulderLX: 0.1,
+    elbowLX: 0.1,
+    shoulderRZ: 0.01,
+    shoulderRY: 0.1,
+    shoulderRX: 0.1,
+    elbowRX: 0.1,
+    torsoY: 0.1,
+  };
+  
+  gui = new dat.GUI({load: loadJSON(), preset:'Default'});
+  gui.remember (gcontrols);
+  
+      gui.domElement.id = 'gui';
+  gui.add (gcontrols, 'shoulderLZ', -3.14, 3);
+  gui.add (gcontrols, 'shoulderLY', -3.2, 3);
+  gui.add (gcontrols, 'shoulderLX', -3.2, 3);
+  gui.add (gcontrols, 'elbowLX', -3, 3);
+  gui.add (gcontrols, 'shoulderRZ', -3.14, 3);
+  gui.add (gcontrols, 'shoulderRY', -3.2, 3);
+  gui.add (gcontrols, 'shoulderRX', -3.2, 3);
+  gui.add (gcontrols, 'elbowRX', -3, 3);
+	gui.add (gcontrols, 'torsoY', -3,3);
+*/
+}
+/*
+function loadJSON() {
+	return {
+  "preset": "Default",
+  "closed": false,
+  "remembered": {
+    "Default": {  // for X.XX display
+      "0": {
+        "shoulderLZ": 0.01,
+        "shoulderLY": 0.01,
+        "shoulderLX": 0.01,
+        "elbowLX": 0.01,
+        "shoulderRZ": 0.01,
+        "shoulderRY": 0.01,
+        "shoulderRX": 0.01,
+        "elbowRX": 0.01,
+        "torsoY": 0.01
+      }
+    },
+    "standby": {
+      "0": {
+        "shoulderLZ": -.2,
+        "shoulderLY": 0,
+        "shoulderLX": -.5,
+        "elbowLX": -1.6,
+        "shoulderRZ": 0.2,
+        "shoulderRY": 0,
+        "shoulderRX": -.5,
+        "elbowRX": -1.6,
+        "torsoY": 0
+      }
+    },
+    "start": {
+      "0": {
+        "shoulderLZ": -0.42823141014175103,
+        "shoulderLY": -1.625495924618134,
+        "shoulderLX": 0.496661742200903,
+        "elbowLX": -2.01,
+        "shoulderRZ": 0.01,
+        "shoulderRY": 0.01,
+        "shoulderRX": 0.01,
+        "elbowRX": 0.01,
+        "torsoY": -0.3500632672394959
+      }
+    }
+  },
+  "folders": {}
+  }
+}
+*/
+function animate() {
+soundtrack.volume = soundVal;
+  requestAnimationFrame(animate);
+  update();
+  render();
+}
+
+function update() {
+  controls.update();
+  keyframe(clock.getElapsedTime());
+}
+
+function onWindowResize() {
+  var width = window.innerWidth,
+    height = window.innerHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+}
+function keyframe (t) {
+	var s = ((t - ts)%T)/T;
+ //onsole.log (s);
+  
+  for (var i = 0; i < keys.length; i++) {
+  	if (keys[i][0] > s) break;
+  }
+  
+  // take i-1
+  var ii = i-1;
+  var a = (s - keys[ii][0]) / (keys[ii+1][0] - keys[ii][0]);
+  intKey = []
+  for (var j = 0; j < 9; j++) {
+  	intKey.push (keys[ii][1][j] * (1-a) + keys[ii+1][1][j]*a);
+  }
+ //onsole.log (intKey);
+  
+}
+function render() {
+  upperArmL.rotation.order = 'ZXY';
+/*
+  upperArmL.rotation.z = gcontrols.shoulderLZ; 
+  upperArmL.rotation.y = gcontrols.shoulderLY; 
+  upperArmL.rotation.x = gcontrols.shoulderLX; 
+
+  lowerArmL.rotation.x = gcontrols.elbowLX; 
+  
+  upperArmR.rotation.z = gcontrols.shoulderRZ; 
+  upperArmR.rotation.y = gcontrols.shoulderRY; 
+  upperArmR.rotation.x = gcontrols.shoulderRX; 
+
+  lowerArmR.rotation.x = gcontrols.elbowRX; 
+  
+  torso.rotation.y = gcontrols.torsoY;
+*/ if(lr<=10&&turn){
+  upperArmL.rotation.z = intKey[0]; 
+  upperArmL.rotation.y = intKey[1]; 
+  upperArmL.rotation.x = intKey[2]; 
+  lowerArmL.rotation.x = intKey[3]; 
+  lr++;  
+ } 
+ if(lr==10) turn=false;
+  if(lr==-1) turn=true;
+// console.log (lr);
+ if(!turn){
+   upperArmR.rotation.z = intKey[5]; 
+ upperArmR.rotation.y = intKey[6]; 
+ upperArmR.rotation.x = intKey[7];
+ lowerArmR.rotation.x = intKey[8]; 
+  lr--;
+  }
+  torso.rotation.y = intKey[4];
+
+  renderer.render(scene, camera);
+}
+
+
+</script>
+</body>
+
+</html>
